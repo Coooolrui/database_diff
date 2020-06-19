@@ -70,7 +70,7 @@ public class SqlDifferenceController {
     public Object getTableColumns(@PathVariable String tableName) throws SQLException {
         Connection conn = DbUtil.getConnection();
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(SHOW_COLUMN + tableName);
+        ResultSet rs = stmt.executeQuery(addTableName(tableName));
 
         List<Map<String, Object>> list = new ArrayList<>();
         while (rs.next()) {
@@ -95,7 +95,7 @@ public class SqlDifferenceController {
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
         return getTables().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = getStatement(DbUtil.getConnection()).executeQuery(SHOW_COLUMN + b);
+                ResultSet rs = getStatement(DbUtil.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
@@ -104,11 +104,15 @@ public class SqlDifferenceController {
         }, HashMap::putAll);
     }
 
+    private static String addTableName(String tableName) {
+        return SHOW_COLUMN + "`" + tableName + "`";
+    }
+
     @PostMapping("getTablesColumnsV2")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
         return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = getStatement(DbUtilV2.getConnection()).executeQuery(SHOW_COLUMN + b);
+                ResultSet rs = getStatement(DbUtilV2.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
