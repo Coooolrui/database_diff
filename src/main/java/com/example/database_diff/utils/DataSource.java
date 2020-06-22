@@ -34,9 +34,7 @@ public class DataSource {
         PASSWORD = environment.getProperty("spring.source.datasource.password");
 
         try {
-            //1.加载驱动程序
             Class.forName(DRIVER_CLASS_NAME);
-            //2. 获得数据库连接
             conn = DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
