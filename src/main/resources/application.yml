@@ -2,14 +2,17 @@ server:
   port: 8080
 
 spring:
-  datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/different?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
-#showSql
-logging:
-  level:
-    com:
-      example:
-        mapper : debug
+  source:
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/different?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai
+      schema-name: different
+      username: root
+      password: 123456
+  target:
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/different2?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai
+      schema-name: different2
+      username: root
+      password: 123456

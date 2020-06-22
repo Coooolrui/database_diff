@@ -8,7 +8,7 @@ import java.util.*;
  * @Date 2020/6/13 8:53 上午
  * @Created by haoqi
  */
-public class TextDiff {
+public class DataDiff {
 
     /**
      * @param tables1 source

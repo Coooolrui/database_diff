@@ -1,10 +1,10 @@
 package com.example.database_diff.controllers;
 
 import com.example.database_diff.enums.ColumnType;
-import com.example.database_diff.utils.DbUtil;
-import com.example.database_diff.utils.DbUtilV2;
+import com.example.database_diff.utils.DataSource;
+import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
-import com.example.database_diff.utils.TextDiff;
+import com.example.database_diff.utils.DataDiff;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +47,7 @@ public class SqlDifferenceController {
 
     @GetMapping("getTableColumns/{tableName}")
     public Object getTableColumns(@PathVariable String tableName) throws SQLException {
-        Connection conn = DbUtil.getConnection();
+        Connection conn = DataSource.getConnection();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(addTableName(tableName));
 
@@ -74,7 +74,7 @@ public class SqlDifferenceController {
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
         return getTables().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = SqlUtil.getStatement(DbUtil.getConnection()).executeQuery(addTableName(b));
+                ResultSet rs = SqlUtil.getStatement(DataSource.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
@@ -91,7 +91,7 @@ public class SqlDifferenceController {
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
         return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = SqlUtil.getStatement(DbUtilV2.getConnection()).executeQuery(addTableName(b));
+                ResultSet rs = SqlUtil.getStatement(DataTarget.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
@@ -102,7 +102,7 @@ public class SqlDifferenceController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        return new TreeMap<>(TextDiff.diff(getTablesColumns(), getTablesColumnsV2()));
+        return new TreeMap<>(DataDiff.diff(getTablesColumns(), getTablesColumnsV2()));
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {

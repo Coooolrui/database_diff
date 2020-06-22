@@ -19,19 +19,19 @@ public class SqlUtil {
     }
 
     public static ResultSet getResultV1() throws SQLException {
-        return getStatement(DbUtil.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
+        return getStatement(DataSource.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
     }
 
     public static ResultSet getResultV2() throws SQLException {
-        return getStatement(DbUtilV2.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
+        return getStatement(DataTarget.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
     }
 
     public static String tableName() {
-        return "Tables_in_" + DbUtil.databaseName;
+        return "Tables_in_" + DataSource.databaseName;
     }
 
     public static String tableName2() {
-        return "Tables_in_" + DbUtilV2.databaseName;
+        return "Tables_in_" + DataTarget.databaseName;
     }
 
 }
