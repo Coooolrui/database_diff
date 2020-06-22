@@ -2,7 +2,8 @@ package com.example.database_diff.utils;
 
 import com.example.database_diff.enums.ColumnType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Date 2020/6/13 8:53 上午
@@ -19,14 +20,21 @@ public class DataDiff {
 
         //diffTable 中都是 tables2 中不存在的表
         //和应该保存不同的表
-        Map<String, Map<String, Map<String, Object>>> diffTable = diffTable(tables1, tables2);
-
-        //key 表名
-        //value 字段的maps集合
+        Map<String, Map<String, Map<String, Object>>> diffTable = new HashMap<>();
         tables1.forEach((key, value) -> {
+            /**
+             * 对比缺少的表
+             * 并删除多出来的表
+             *
+             * @param tables1 source
+             * @param tables2 target
+             */
+            if (!tables2.containsKey(key)) {
+                diffTable.put(key, transform(value));
+                return;
+            }
+
             Map<String, Map<String, Object>> lackField = diffLackField(value, tables2.get(key));
-            Map<String, Map<String, Object>> diffField = diffField(value, tables2.get(key));
-            lackField.putAll(diffField);
             if (!lackField.isEmpty()) {
                 diffTable.put(key, lackField);
             }
@@ -40,87 +48,52 @@ public class DataDiff {
 //        return o + "," + o1;
 //    }
 
-
-    /**
-     * 对比相同字段的不同属性
-     * 首先获取这个表下所有的字段
-     * 然后比对两个表中字段中不同的属性
-     * 遇到不同的直接保存并跳出循环
-     *
-     * @param table1 source
-     * @param table2 target
-     */
-    public static Map<String, Map<String, Object>> diffField(Map<String, Map<ColumnType, Object>> table1,
-                                                             Map<String, Map<ColumnType, Object>> table2) {
-
-        Map<String, Map<String, Object>> diffTable = new HashMap<>();
-        Set<Map.Entry<String, Map<ColumnType, Object>>> fields = table1.entrySet();
-        for (Map.Entry<String, Map<ColumnType, Object>> field : fields) {
-            String fieldName = field.getKey();
-            Map<ColumnType, Object> fieldValue = field.getValue();
-            Map<ColumnType, Object> field2Value = table2.get(fieldName);
-
-            for (ColumnType fieldType : ColumnType.columnTypes()) {
-                Object value1 = fieldValue.get(fieldType);
-                Object value2 = field2Value.get(fieldType);
-
-                if (!compareFieldValue(value1, value2)) {
-                    Map<String, Object> old_new = new HashMap<>();
-                    old_new.put("new", fieldValue);
-                    old_new.put("old", field2Value);
-
-                    diffTable.put(fieldName, old_new);
-                    break;
-                }
-            }
-        }
-        return diffTable;
-    }
-
     private static Boolean compareFieldValue(Object value1, Object value2) {
         return (value1 == null && value2 == null) || ((value1 != null && value2 != null) && (value1.equals(value2)));
     }
 
-    /**
-     * 对比缺少的字段
-     * 并删除多出来的字段
-     *
-     * @param table1 source
-     * @param table2 target
-     */
+
     public static Map<String, Map<String, Object>> diffLackField(Map<String, Map<ColumnType, Object>> table1,
                                                                  Map<String, Map<ColumnType, Object>> table2) {
 
-        List<String> keys = new ArrayList<>();
         Map<String, Map<String, Object>> diffTable = new HashMap<>();
         table1.forEach((key, value) -> {
+            /**
+             * 对比缺少的字段
+             * 并删除多出来的字段
+             *
+             * @param table1 source
+             * @param table2 target
+             */
             if (!table2.containsKey(key)) {
                 diffTable.put(key, transformField(value));
-                keys.add(key);
+                return;
             }
-        });
-        keys.forEach(table1::remove);
-        return diffTable;
-    }
 
-    /**
-     * 对比缺少的表
-     * 并删除多出来的表
-     *
-     * @param tables1 source
-     * @param tables2 target
-     */
-    public static Map<String, Map<String, Map<String, Object>>> diffTable(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
-                                                                          Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
-        List<String> keys = new ArrayList<>();
-        Map<String, Map<String, Map<String, Object>>> diffTable = new HashMap<>();
-        tables1.forEach((key, value) -> {
-            if (!tables2.containsKey(key)) {
-                diffTable.put(key, transform(value));
-                keys.add(key);
+            /**
+             * 对比相同字段的不同属性
+             * 首先获取这个表下所有的字段
+             * 然后比对两个表中字段中不同的属性
+             * 遇到不同的直接保存并跳出循环
+             *
+             * @param table1 source
+             * @param table2 target
+             */
+            Map<ColumnType, Object> field2Value = table2.get(key);
+            for (ColumnType fieldType : ColumnType.columnTypes()) {
+                Object value1 = value.get(fieldType);
+                Object value2 = field2Value.get(fieldType);
+
+                if (!compareFieldValue(value1, value2)) {
+                    Map<String, Object> old_new = new HashMap<>();
+                    old_new.put("new", value);
+                    old_new.put("old", field2Value);
+                    diffTable.put(key, old_new);
+                    break;
+                }
             }
+
         });
-        keys.forEach(tables1::remove);
         return diffTable;
     }
 
@@ -138,17 +111,11 @@ public class DataDiff {
 
     public static Map<String, Object> diffRoutines(Map<String, String> source, Map<String, String> target) {
         Map<String, Object> diff = new HashMap<>();
-        List<String> list = new ArrayList<>();
         source.forEach((key, value) -> {
             if (!target.containsKey(key)) {
                 diff.put(key, value);
-                list.add(key);
+                return;
             }
-        });
-
-        list.forEach(source::remove);
-
-        source.forEach((key, value) -> {
             String targetValue = target.get(key);
             if (!value.equalsIgnoreCase(targetValue)) {
                 Map<String, String> map = new HashMap<>();
