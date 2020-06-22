@@ -135,4 +135,30 @@ public class DataDiff {
         map.forEach((a, b) -> hashMap.put(a.name(), b));
         return hashMap;
     }
+
+    public static Map<String, Object> diffRoutines(Map<String, String> source, Map<String, String> target) {
+        Map<String, Object> diff = new HashMap<>();
+        List<String> list = new ArrayList<>();
+        source.forEach((key, value) -> {
+            if (!target.containsKey(key)) {
+                diff.put(key, value);
+                list.add(key);
+            }
+        });
+
+        list.forEach(source::remove);
+
+        source.forEach((key, value) -> {
+            String targetValue = target.get(key);
+            if (!value.equalsIgnoreCase(targetValue)) {
+                Map<String, String> map = new HashMap<>();
+                map.put("new", value);
+                map.put("old", targetValue);
+                diff.put(key, map);
+            }
+        });
+        return diff;
+    }
+
+
 }
