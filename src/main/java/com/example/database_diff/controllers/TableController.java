@@ -50,7 +50,7 @@ public class TableController {
     @PostMapping("getTablesColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
         return getTables().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
@@ -58,14 +58,10 @@ public class TableController {
         }, HashMap::putAll);
     }
 
-    private static String addTableName(String tableName) {
-        return SqlUtil.SHOW_COLUMN + "`" + tableName + "`";
-    }
-
     @PostMapping("getTablesColumnsV2")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
         return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);

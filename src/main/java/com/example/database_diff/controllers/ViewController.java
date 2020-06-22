@@ -37,7 +37,7 @@ public class ViewController {
 
     @PostMapping("getViewsV2")
     public List<String> getViewsV2() throws SQLException {
-        try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getFieldNameView(DataSource.SCHEMA_NAME))) {
+        try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getFieldNameView(DataTarget.SCHEMA_NAME))) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
                 String tables_in_tdasapp = rs.getString(SqlUtil.TABLE_NAME);
@@ -50,7 +50,7 @@ public class ViewController {
     @PostMapping("getViewsColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getViewsColumns() throws SQLException {
         return getViews().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
@@ -58,14 +58,10 @@ public class ViewController {
         }, HashMap::putAll);
     }
 
-    private static String addTableName(String tableName) {
-        return SqlUtil.SHOW_COLUMN + "`" + tableName + "`";
-    }
-
     @PostMapping("getViewsColumnsV2")
     public Map<String, Map<String, Map<ColumnType, Object>>> getViewsColumnsV2() throws SQLException {
         return getViewsV2().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
