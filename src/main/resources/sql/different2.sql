@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS different2
+CREATE DATABASE IF NOT EXISTS different2;
 
-USE different2
+USE different2;
 
 -- auto-generated definition
 CREATE TABLE student

@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS different
+CREATE DATABASE IF NOT EXISTS different;
 
-USE different
+USE different;
 -- auto-generated definition
 CREATE TABLE course
 (
