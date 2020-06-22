@@ -3,6 +3,7 @@ package com.example.database_diff.controllers;
 import com.example.database_diff.enums.ColumnType;
 import com.example.database_diff.utils.DbUtil;
 import com.example.database_diff.utils.DbUtilV2;
+import com.example.database_diff.utils.SqlUtil;
 import com.example.database_diff.utils.TextDiff;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -21,36 +22,13 @@ import java.util.*;
 @RestController
 @RequestMapping("sql")
 public class SqlDifferenceController {
-    private static final String SHOW_TABLE = "SHOW TABLES";
-    private static final String SHOW_TABLE_NOT_VIEW = "SHOW FULL TABLES WHERE Table_type != 'VIEW'";
-    private static final String SHOW_COLUMN = "SHOW COLUMNS FROM ";
-
-    public Statement getStatement(Connection connection) throws SQLException {
-        return connection.createStatement();
-    }
-
-    public ResultSet getResultV1() throws SQLException {
-        return getStatement(DbUtil.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
-    }
-
-    public ResultSet getResultV2() throws SQLException {
-        return getStatement(DbUtilV2.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
-    }
-
-    public String tableName() {
-        return "Tables_in_" + DbUtil.databaseName;
-    }
-
-    public String tableName2() {
-        return "Tables_in_" + DbUtilV2.databaseName;
-    }
 
     @GetMapping("getTables")
     public List<String> getTables() throws SQLException {
-        ResultSet rs = getResultV1();
+        ResultSet rs = SqlUtil.getResultV1();
         List<String> tables = new ArrayList<>();
         while (rs.next()) {
-            String tables_in_tdasapp = rs.getString(tableName());
+            String tables_in_tdasapp = rs.getString(SqlUtil.tableName());
             tables.add(tables_in_tdasapp);
         }
         return tables;
@@ -58,10 +36,10 @@ public class SqlDifferenceController {
 
     @GetMapping("getTablesV2")
     public List<String> getTablesV2() throws SQLException {
-        ResultSet rs = getResultV2();
+        ResultSet rs = SqlUtil.getResultV2();
         List<String> tables = new ArrayList<>();
         while (rs.next()) {
-            String tables_in_tdasapp = rs.getString(tableName2());
+            String tables_in_tdasapp = rs.getString(SqlUtil.tableName2());
             tables.add(tables_in_tdasapp);
         }
         return tables;
@@ -96,7 +74,7 @@ public class SqlDifferenceController {
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
         return getTables().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = getStatement(DbUtil.getConnection()).executeQuery(addTableName(b));
+                ResultSet rs = SqlUtil.getStatement(DbUtil.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
@@ -106,14 +84,14 @@ public class SqlDifferenceController {
     }
 
     private static String addTableName(String tableName) {
-        return SHOW_COLUMN + "`" + tableName + "`";
+        return SqlUtil.SHOW_COLUMN + "`" + tableName + "`";
     }
 
     @PostMapping("getTablesColumnsV2")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
         return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
             try {
-                ResultSet rs = getStatement(DbUtilV2.getConnection()).executeQuery(addTableName(b));
+                ResultSet rs = SqlUtil.getStatement(DbUtilV2.getConnection()).executeQuery(addTableName(b));
                 a.putAll(addTable(rs, b));
                 rs.close();
             } catch (SQLException throwables) {
