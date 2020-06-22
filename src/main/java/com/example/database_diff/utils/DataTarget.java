@@ -17,7 +17,7 @@ import java.sql.SQLException;
 public class DataTarget {
     public static String DRIVER_CLASS_NAME;
     public static String URL;
-    public static String databaseName;
+    public static String SCHEMA_NAME;
     public static String USER;
     public static String PASSWORD;
 
@@ -29,7 +29,7 @@ public class DataTarget {
     void init() {
         DRIVER_CLASS_NAME = environment.getProperty("spring.target.datasource.driver-class-name");
         URL = environment.getProperty("spring.target.datasource.url");
-        databaseName = environment.getProperty("spring.target.datasource.schema-name");
+        SCHEMA_NAME = environment.getProperty("spring.target.datasource.schema-name");
         USER = environment.getProperty("spring.target.datasource.username");
         PASSWORD = environment.getProperty("spring.target.datasource.password");
 

@@ -10,28 +10,26 @@ import java.sql.Statement;
  * @Created by haoqi
  */
 public class SqlUtil {
+    public static final String TABLE_NAME = "TABLE_NAME";
     public static final String SHOW_TABLE = "SHOW TABLES";
     public static final String SHOW_TABLE_NOT_VIEW = "SHOW FULL TABLES WHERE Table_type != 'VIEW'";
+    public static final String SHOW_VIEW_BEGIN = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = '";
+    public static final String SHOW_VIEW_END = "' ORDER BY TABLE_NAME ASC";
     public static final String SHOW_COLUMN = "SHOW COLUMNS FROM ";
 
     public static Statement getStatement(Connection connection) throws SQLException {
         return connection.createStatement();
     }
 
-    public static ResultSet getResultV1() throws SQLException {
-        return getStatement(DataSource.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
+    public static ResultSet getResultSet(Connection connection, String sql) throws SQLException {
+        return getStatement(connection).executeQuery(sql);
     }
 
-    public static ResultSet getResultV2() throws SQLException {
-        return getStatement(DataTarget.getConnection()).executeQuery(SHOW_TABLE_NOT_VIEW);
+    public static String getFieldName(String schemaName) {
+        return "Tables_in_" + schemaName;
     }
 
-    public static String tableName() {
-        return "Tables_in_" + DataSource.databaseName;
+    public static String getFieldNameView(String schemaName) {
+        return SHOW_VIEW_BEGIN + schemaName + SHOW_VIEW_END;
     }
-
-    public static String tableName2() {
-        return "Tables_in_" + DataTarget.databaseName;
-    }
-
 }

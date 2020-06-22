@@ -1,17 +1,17 @@
 package com.example.database_diff.controllers;
 
 import com.example.database_diff.enums.ColumnType;
+import com.example.database_diff.utils.DataDiff;
 import com.example.database_diff.utils.DataSource;
 import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
-import com.example.database_diff.utils.DataDiff;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 /**
@@ -20,63 +20,38 @@ import java.util.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("sql")
-public class SqlDifferenceController {
+@RequestMapping("tables")
+public class TableController {
 
-    @GetMapping("getTables")
+    @PostMapping("getTables")
     public List<String> getTables() throws SQLException {
-        ResultSet rs = SqlUtil.getResultV1();
-        List<String> tables = new ArrayList<>();
-        while (rs.next()) {
-            String tables_in_tdasapp = rs.getString(SqlUtil.tableName());
-            tables.add(tables_in_tdasapp);
+        try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
+            List<String> tables = new ArrayList<>();
+            while (rs.next()) {
+                String tables_in_tdasapp = rs.getString(SqlUtil.getFieldName(DataSource.SCHEMA_NAME));
+                tables.add(tables_in_tdasapp);
+            }
+            return tables;
         }
-        return tables;
     }
 
-    @GetMapping("getTablesV2")
+    @PostMapping("getTablesV2")
     public List<String> getTablesV2() throws SQLException {
-        ResultSet rs = SqlUtil.getResultV2();
-        List<String> tables = new ArrayList<>();
-        while (rs.next()) {
-            String tables_in_tdasapp = rs.getString(SqlUtil.tableName2());
-            tables.add(tables_in_tdasapp);
+        try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
+            List<String> tables = new ArrayList<>();
+            while (rs.next()) {
+                String tables_in_tdasapp = rs.getString(SqlUtil.getFieldName(DataTarget.SCHEMA_NAME));
+                tables.add(tables_in_tdasapp);
+            }
+            return tables;
         }
-        return tables;
-    }
-
-    @GetMapping("getTableColumns/{tableName}")
-    public Object getTableColumns(@PathVariable String tableName) throws SQLException {
-        Connection conn = DataSource.getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(addTableName(tableName));
-
-        List<Map<String, Object>> list = new ArrayList<>();
-        while (rs.next()) {
-            String field = rs.getString(ColumnType.Field.name());
-            String type = rs.getString(ColumnType.Type.name());
-            String aNull = rs.getString(ColumnType.Null.name());
-            String key = rs.getString(ColumnType.Key.name());
-            String aDefault = rs.getString(ColumnType.Default.name());
-
-            Map<String, Object> map = new HashMap<>();
-            map.put(ColumnType.Field.name(), field);
-            map.put(ColumnType.Type.name(), type);
-            map.put(ColumnType.Null.name(), aNull);
-            map.put(ColumnType.Key.name(), key);
-            map.put(ColumnType.Default.name(), aDefault);
-            list.add(map);
-        }
-        return list;
     }
 
     @PostMapping("getTablesColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
         return getTables().stream().collect(HashMap::new, (a, b) -> {
-            try {
-                ResultSet rs = SqlUtil.getStatement(DataSource.getConnection()).executeQuery(addTableName(b));
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), addTableName(b))) {
                 a.putAll(addTable(rs, b));
-                rs.close();
             } catch (SQLException throwables) {
                 log.error(b);
             }
@@ -90,10 +65,8 @@ public class SqlDifferenceController {
     @PostMapping("getTablesColumnsV2")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
         return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
-            try {
-                ResultSet rs = SqlUtil.getStatement(DataTarget.getConnection()).executeQuery(addTableName(b));
+            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), addTableName(b))) {
                 a.putAll(addTable(rs, b));
-                rs.close();
             } catch (SQLException throwables) {
                 log.error(b);
             }
