@@ -4,8 +4,13 @@ import com.example.database_diff.enums.ColumnType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
+ * TODO 新表组装成create语句
+ * TODO 更改的字段生成'add/alter'语句
+ * TODO 将结果生成sql文件，可执行
+ *
  * @Date 2020/6/13 8:53 上午
  * @Created by haoqi
  */
@@ -15,12 +20,16 @@ public class DataDiff {
      * @param tables1 source
      * @param tables2 target
      */
-    public static Map<String, Map<String, Map<String, Object>>> diff(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
-                                                                     Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
+    public static Map<String, Object> diff(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
+                                           Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
+        Map<String, Object> map = new HashMap<>();
+
+        Map<String, Object> map1 = new HashMap<>();
 
         //diffTable 中都是 tables2 中不存在的表
         //和应该保存不同的表
         Map<String, Map<String, Map<String, Object>>> diffTable = new HashMap<>();
+
         tables1.forEach((key, value) -> {
             /**
              * 对比缺少的表
@@ -30,7 +39,8 @@ public class DataDiff {
              * @param tables2 target
              */
             if (!tables2.containsKey(key)) {
-                diffTable.put(key, transform(value));
+                map1.put(key, value);
+                //diffTable.put(key, transform(value));
                 return;
             }
 
@@ -39,7 +49,9 @@ public class DataDiff {
                 diffTable.put(key, lackField);
             }
         });
-        return diffTable;
+        map.put("different", new TreeMap<>(diffTable));
+        map.put("new", new TreeMap<>(map1));
+        return map;
     }
 
 //    public static String assembling(Object o, Object o1) {
