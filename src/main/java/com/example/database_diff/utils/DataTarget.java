@@ -15,7 +15,6 @@ import java.sql.SQLException;
  */
 @Configuration
 public class DataTarget {
-    public static String DRIVER_CLASS_NAME;
     public static String URL;
     public static String SCHEMA_NAME;
     public static String USER;
@@ -27,16 +26,14 @@ public class DataTarget {
 
     @PostConstruct
     void init() {
-        DRIVER_CLASS_NAME = environment.getProperty("spring.target.datasource.driver-class-name");
         URL = environment.getProperty("spring.target.datasource.url");
         SCHEMA_NAME = environment.getProperty("spring.target.datasource.schema-name");
         USER = environment.getProperty("spring.target.datasource.username");
         PASSWORD = environment.getProperty("spring.target.datasource.password");
 
         try {
-            Class.forName(DRIVER_CLASS_NAME);
             conn = DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
