@@ -19,6 +19,7 @@ public class DataDiff {
     /**
      * 获取表的对比结果
      * 包含没有添加的表，不同的字段属性
+     *
      * @param tables1 source
      * @param tables2 target
      */
@@ -27,7 +28,7 @@ public class DataDiff {
 
 
         Map<String, Object> diffTables = new HashMap<>();
-        Map<String, Map<String, Map<String, Object>>> diffFields = new HashMap<>();
+        Map<String, Map<String, Object>> diffFields = new HashMap<>();
 
         tables1.forEach((key, value) -> {
             /**
@@ -40,7 +41,7 @@ public class DataDiff {
                 return;
             }
 
-            Map<String, Map<String, Object>> lackField = diffLackField(value, tables2.get(key));
+            Map<String, Object> lackField = diffLackField(value, tables2.get(key));
             if (!lackField.isEmpty()) {
                 diffFields.put(key, lackField);
             }
@@ -68,17 +69,17 @@ public class DataDiff {
      * @author: haoqi
      * @date: 2020/8/19 4:17 下午
      */
-    public static Map<String, Map<String, Object>> diffLackField(Map<String, Map<ColumnType, Object>> table1,
-                                                                 Map<String, Map<ColumnType, Object>> table2) {
+    public static Map<String, Object> diffLackField(Map<String, Map<ColumnType, Object>> table1,
+                                                    Map<String, Map<ColumnType, Object>> table2) {
 
-        Map<String, Map<String, Object>> diffTable = new HashMap<>();
+        Map<String, Object> diffTable = new HashMap<>();
         table1.forEach((key, value) -> {
 
             /*
              * 对比缺少的字段
              */
             if (!table2.containsKey(key)) {
-                diffTable.put(key, transformField(value));
+                diffTable.put(key, value);
                 return;
             }
 
