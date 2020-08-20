@@ -71,7 +71,7 @@ public class TableController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        return new TreeMap<>(DataDiff.diff(getTablesColumns(), getTablesColumnsV2()));
+        return new TreeMap<>(DataDiff.diffTablesOrViews(getTablesColumns(), getTablesColumnsV2()));
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {

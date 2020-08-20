@@ -17,79 +17,73 @@ import java.util.TreeMap;
 public class DataDiff {
 
     /**
+     * 获取表的对比结果
+     * 包含没有添加的表，不同的字段属性
      * @param tables1 source
      * @param tables2 target
      */
-    public static Map<String, Object> diff(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
-                                           Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
-        Map<String, Object> map = new HashMap<>();
+    public static Map<String, Object> diffTablesOrViews(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
+                                                        Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
 
-        Map<String, Object> map1 = new HashMap<>();
 
-        //diffTable 中都是 tables2 中不存在的表
-        //和应该保存不同的表
-        Map<String, Map<String, Map<String, Object>>> diffTable = new HashMap<>();
+        Map<String, Object> diffTables = new HashMap<>();
+        Map<String, Map<String, Map<String, Object>>> diffFields = new HashMap<>();
 
         tables1.forEach((key, value) -> {
             /**
              * 对比缺少的表
-             * 并删除多出来的表
-             *
              * @param tables1 source
              * @param tables2 target
              */
             if (!tables2.containsKey(key)) {
-                map1.put(key, value);
-                //diffTable.put(key, transform(value));
+                diffTables.put(key, value);
                 return;
             }
 
             Map<String, Map<String, Object>> lackField = diffLackField(value, tables2.get(key));
             if (!lackField.isEmpty()) {
-                diffTable.put(key, lackField);
+                diffFields.put(key, lackField);
             }
         });
-        map.put("different", new TreeMap<>(diffTable));
-        map.put("new", new TreeMap<>(map1));
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("diffFields", new TreeMap<>(diffFields));
+        map.put("newTables", new TreeMap<>(diffTables));
         return map;
     }
 
-//    public static String assembling(Object o, Object o1) {
-//        if (o == null) o = "null";
-//        if (o1 == null) o1 = "null";
-//        return o + "," + o1;
-//    }
-
+    /**
+     * 对比两张表是否相等
+     */
     private static Boolean compareFieldValue(Object value1, Object value2) {
         return (value1 == null && value2 == null) || ((value1 != null && value2 != null) && (value1.equals(value2)));
     }
 
 
+    /**
+     * 对比不同的字段
+     *
+     * @param table1 source
+     * @param table2 target
+     * @author: haoqi
+     * @date: 2020/8/19 4:17 下午
+     */
     public static Map<String, Map<String, Object>> diffLackField(Map<String, Map<ColumnType, Object>> table1,
                                                                  Map<String, Map<ColumnType, Object>> table2) {
 
         Map<String, Map<String, Object>> diffTable = new HashMap<>();
         table1.forEach((key, value) -> {
-            /**
+
+            /*
              * 对比缺少的字段
-             * 并删除多出来的字段
-             *
-             * @param table1 source
-             * @param table2 target
              */
             if (!table2.containsKey(key)) {
                 diffTable.put(key, transformField(value));
                 return;
             }
 
-            /**
-             * 对比相同字段的不同属性
-             * 首先获取这个表下所有的字段
-             * 然后比对两个表中字段中不同的属性
-             * 遇到不同的直接保存并跳出循环
-             *
-             * @param table1 source
-             * @param table2 target
+            /*
+              比对两个表中字段中不同的属性
              */
             Map<ColumnType, Object> field2Value = table2.get(key);
             for (ColumnType fieldType : ColumnType.columnTypes()) {

@@ -71,7 +71,7 @@ public class ViewController {
 
     @PostMapping("getDiffViews")
     public Object getDiffViews() throws SQLException {
-        return new TreeMap<>(DataDiff.diff(getViewsColumns(), getViewsColumnsV2()));
+        return new TreeMap<>(DataDiff.diffTablesOrViews(getViewsColumns(), getViewsColumnsV2()));
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
