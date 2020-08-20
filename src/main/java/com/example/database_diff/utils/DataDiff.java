@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
+ * TODO 添加对自增主键的适配
  * TODO 新表组装成create语句
  * TODO 更改的字段生成'add/alter'语句
  * TODO 将结果生成sql文件，可执行
@@ -102,6 +103,19 @@ public class DataDiff {
 
         });
         return diffTable;
+    }
+
+    public static void diffField(HashMap<ColumnType, String> _new, HashMap<ColumnType, String> _old) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("alter column head_rp set default '';");
+        for (ColumnType fieldType : ColumnType.columnTypes()) {
+            Object value1 = _new.get(fieldType);
+            Object value2 = _old.get(fieldType);
+
+            if (!compareFieldValue(value1, value2)) {
+
+            }
+        }
     }
 
     private static Map<String, Map<String, Object>> transform(Map<String, Map<ColumnType, Object>> map) {

@@ -12,8 +12,8 @@ class DatabaseDiffApplicationTests {
     @Test
     void contextLoads() throws SQLException {
         TableController tableController = new TableController();
-       // System.out.println(tableController.getDiffTables());
-        System.out.println(tableController.getTablesV2());
+       System.out.println(tableController.getDiffTables());
+        //System.out.println(tableController.getTablesV2());
     }
 
 }

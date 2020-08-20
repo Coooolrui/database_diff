@@ -71,7 +71,33 @@ public class TableController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        return new TreeMap<>(DataDiff.diffTablesOrViews(getTablesColumns(), getTablesColumnsV2()));
+        TreeMap<String, Object> map = new TreeMap<>(DataDiff.diffTablesOrViews(getTablesColumns(), getTablesColumnsV2()));
+        TreeMap diffTables = (TreeMap) map.get("diffFields");
+        //key 表名
+        //value字段集合
+        diffTables.forEach((key, value) -> {
+
+            //fieldsKey 字段名称
+            //fieldsValue 属性/值集合
+            ((HashMap) value).forEach((fieldsKey, fieldsValue) -> {
+
+                HashMap field = (HashMap) fieldsValue;
+                if (field.keySet().size() == 2) {
+                    //存在字段差异 key 为 'new' 'old'
+                    //source
+                    HashMap<ColumnType, String> _new = (HashMap<ColumnType, String>) field.get("new");
+                    //target
+                    HashMap<ColumnType, String> _old = (HashMap<ColumnType, String>) field.get("old");
+
+
+                } else {
+                    //新字段 key 为'enum ColumnType'
+                    HashMap<ColumnType, String> _field = (HashMap<ColumnType, String>) field;
+
+                }
+            });
+        });
+        return map;
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
