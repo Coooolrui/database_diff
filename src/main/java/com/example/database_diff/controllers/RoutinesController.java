@@ -24,8 +24,8 @@ import java.util.Map;
 @RequestMapping("routines")
 public class RoutinesController {
 
-    @PostMapping("getRoutines")
-    public Map<String, String> getRoutines() throws SQLException {
+    @PostMapping("getSourceRoutines")
+    public Map<String, String> getSourceRoutines() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getFieldNameRoutines(DataSource.SCHEMA_NAME))) {
             Map<String, String> tables = new HashMap<>();
             while (rs.next()) {
@@ -37,8 +37,8 @@ public class RoutinesController {
         }
     }
 
-    @PostMapping("getRoutinesV2")
-    public Map<String, String> getRoutinesV2() throws SQLException {
+    @PostMapping("getTargetRoutines")
+    public Map<String, String> getTargetRoutines() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getFieldNameRoutines(DataTarget.SCHEMA_NAME))) {
             Map<String, String> tables = new HashMap<>();
             while (rs.next()) {
@@ -52,6 +52,6 @@ public class RoutinesController {
 
     @PostMapping("getDiffRoutines")
     public Map<String, Object> getDiffRoutines() throws SQLException {
-        return DataDiff.diffRoutines(getRoutines(), getRoutinesV2());
+        return DataDiff.diffRoutines(getSourceRoutines(), getTargetRoutines());
     }
 }
