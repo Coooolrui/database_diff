@@ -23,8 +23,8 @@ import java.util.*;
 @RequestMapping("views")
 public class ViewController {
 
-    @PostMapping("getViews")
-    public List<String> getViews() throws SQLException {
+    @PostMapping("getSourceViews")
+    public List<String> getSourceViews() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getFieldNameView(DataSource.SCHEMA_NAME))) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -35,8 +35,8 @@ public class ViewController {
         }
     }
 
-    @PostMapping("getViewsV2")
-    public List<String> getViewsV2() throws SQLException {
+    @PostMapping("getTargetViews")
+    public List<String> getTargetViews() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getFieldNameView(DataTarget.SCHEMA_NAME))) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -47,9 +47,9 @@ public class ViewController {
         }
     }
 
-    @PostMapping("getViewsColumns")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getViewsColumns() throws SQLException {
-        return getViews().stream().collect(HashMap::new, (a, b) -> {
+    @PostMapping("getSourceViewsColumns")
+    public Map<String, Map<String, Map<ColumnType, Object>>> getSourceViewsColumns() throws SQLException {
+        return getSourceViews().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
@@ -58,9 +58,9 @@ public class ViewController {
         }, HashMap::putAll);
     }
 
-    @PostMapping("getViewsColumnsV2")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getViewsColumnsV2() throws SQLException {
-        return getViewsV2().stream().collect(HashMap::new, (a, b) -> {
+    @PostMapping("getTargetViewsColumns")
+    public Map<String, Map<String, Map<ColumnType, Object>>> getTargetViewsColumns() throws SQLException {
+        return getTargetViews().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
@@ -71,7 +71,7 @@ public class ViewController {
 
     @PostMapping("getDiffViews")
     public Object getDiffViews() throws SQLException {
-        return new TreeMap<>(DataDiff.diffTablesOrViews(getViewsColumns(), getViewsColumnsV2()));
+        return new TreeMap<>(DataDiff.diffTablesOrViews(getSourceViewsColumns(), getTargetViewsColumns()));
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
@@ -80,18 +80,13 @@ public class ViewController {
         Map<String, Map<ColumnType, Object>> table = new HashMap<>();
         while (rs.next()) {
             String field = rs.getString(ColumnType.Field.name());
-            String type = rs.getString(ColumnType.Type.name());
-            String aNull = rs.getString(ColumnType.Null.name());
-            String key = rs.getString(ColumnType.Key.name());
-            String aDefault = rs.getString(ColumnType.Default.name());
-
             Map<ColumnType, Object> map = new HashMap<>();
             map.put(ColumnType.TableName, tableName);
             map.put(ColumnType.Field, field);
-            map.put(ColumnType.Type, type);
-            map.put(ColumnType.Null, aNull);
-            map.put(ColumnType.Key, key);
-            map.put(ColumnType.Default, aDefault);
+            map.put(ColumnType.Type, rs.getString(ColumnType.Type.name()));
+            map.put(ColumnType.Null, rs.getString(ColumnType.Null.name()));
+            map.put(ColumnType.Key, rs.getString(ColumnType.Key.name()));
+            map.put(ColumnType.Default, rs.getString(ColumnType.Default.name()));
 
             table.put(field, map);
         }

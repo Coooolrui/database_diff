@@ -23,8 +23,8 @@ import java.util.*;
 @RequestMapping("tables")
 public class TableController {
 
-    @PostMapping("getTables")
-    public List<String> getTables() throws SQLException {
+    @PostMapping("getSourceTables")
+    public List<String> getSourceTables() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -35,8 +35,8 @@ public class TableController {
         }
     }
 
-    @PostMapping("getTablesV2")
-    public List<String> getTablesV2() throws SQLException {
+    @PostMapping("getTargetTables")
+    public List<String> getTargetTables() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -47,9 +47,9 @@ public class TableController {
         }
     }
 
-    @PostMapping("getTablesColumns")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumns() throws SQLException {
-        return getTables().stream().collect(HashMap::new, (a, b) -> {
+    @PostMapping("getSourceTablesColumns")
+    public Map<String, Map<String, Map<ColumnType, Object>>> getSourceTablesColumns() throws SQLException {
+        return getSourceTables().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
@@ -58,9 +58,9 @@ public class TableController {
         }, HashMap::putAll);
     }
 
-    @PostMapping("getTablesColumnsV2")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getTablesColumnsV2() throws SQLException {
-        return getTablesV2().stream().collect(HashMap::new, (a, b) -> {
+    @PostMapping("getTargetTablesColumns")
+    public Map<String, Map<String, Map<ColumnType, Object>>> getTargetTablesColumns() throws SQLException {
+        return getTargetTables().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
@@ -71,7 +71,7 @@ public class TableController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        TreeMap<String, Object> map = new TreeMap<>(DataDiff.diffTablesOrViews(getTablesColumns(), getTablesColumnsV2()));
+        TreeMap<String, Object> map = new TreeMap<>(DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns()));
         TreeMap diffTables = (TreeMap) map.get("diffFields");
         //key 表名
         //value字段集合
@@ -85,9 +85,9 @@ public class TableController {
                 if (field.keySet().size() == 2) {
                     //存在字段差异 key 为 'new' 'old'
                     //source
-                    HashMap<ColumnType, String> _new = (HashMap<ColumnType, String>) field.get("new");
+                    HashMap<ColumnType, String> _new = (HashMap<ColumnType, String>) field.get(SqlUtil.SOURCE);
                     //target
-                    HashMap<ColumnType, String> _old = (HashMap<ColumnType, String>) field.get("old");
+                    HashMap<ColumnType, String> _old = (HashMap<ColumnType, String>) field.get(SqlUtil.TARGET);
 
 
                 } else {
@@ -106,20 +106,15 @@ public class TableController {
         Map<String, Map<ColumnType, Object>> table = new HashMap<>();
         while (rs.next()) {
             String field = rs.getString(ColumnType.Field.name());
-            String type = rs.getString(ColumnType.Type.name());
-            String aNull = rs.getString(ColumnType.Null.name());
-            String key = rs.getString(ColumnType.Key.name());
-            String aDefault = rs.getString(ColumnType.Default.name());
-            String Extra = rs.getString(ColumnType.Extra.name());
 
             Map<ColumnType, Object> map = new HashMap<>();
             map.put(ColumnType.TableName, tableName);
             map.put(ColumnType.Field, field);
-            map.put(ColumnType.Type, type);
-            map.put(ColumnType.Null, aNull);
-            map.put(ColumnType.Key, key);
-            map.put(ColumnType.Default, aDefault);
-            map.put(ColumnType.Extra, Extra);
+            map.put(ColumnType.Type, rs.getString(ColumnType.Type.name()));
+            map.put(ColumnType.Null, rs.getString(ColumnType.Null.name()));
+            map.put(ColumnType.Key, rs.getString(ColumnType.Key.name()));
+            map.put(ColumnType.Default, rs.getString(ColumnType.Default.name()));
+            map.put(ColumnType.Extra, rs.getString(ColumnType.Extra.name()));
 
             table.put(field, map);
         }

@@ -10,6 +10,9 @@ import java.sql.Statement;
  * @Created by haoqi
  */
 public class SqlUtil {
+    public static final String SOURCE = "source";
+    public static final String TARGET = "targets";
+
     public static final String TABLE_NAME = "TABLE_NAME";
     public static final String SHOW_TABLE = "SHOW TABLES";
     public static final String SHOW_TABLE_NOT_VIEW = "SHOW FULL TABLES WHERE Table_type != 'VIEW'";

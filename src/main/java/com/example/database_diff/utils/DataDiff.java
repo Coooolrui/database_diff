@@ -19,29 +19,26 @@ public class DataDiff {
     /**
      * 获取表的对比结果
      * 包含没有添加的表，不同的字段属性
-     *
-     * @param tables1 source
-     * @param tables2 target
      */
-    public static Map<String, Object> diffTablesOrViews(Map<String, Map<String, Map<ColumnType, Object>>> tables1,
-                                                        Map<String, Map<String, Map<ColumnType, Object>>> tables2) {
+    public static Map<String, Object> diffTablesOrViews(Map<String, Map<String, Map<ColumnType, Object>>> source,
+                                                        Map<String, Map<String, Map<ColumnType, Object>>> target) {
 
 
         Map<String, Object> diffTables = new HashMap<>();
         Map<String, Map<String, Object>> diffFields = new HashMap<>();
 
-        tables1.forEach((key, value) -> {
+        source.forEach((tableName, tableDetails) -> {
 
             //对比缺少的表
             //table2对比table1没有的表名
-            if (!tables2.containsKey(key)) {
-                diffTables.put(key, value);
+            if (!target.containsKey(tableName)) {
+                diffTables.put(tableName, tableDetails);
                 return;
             }
             //对比不同的字段
-            Map<String, Object> lackField = diffLackField(value, tables2.get(key));
+            Map<String, Object> lackField = diffLackField(tableDetails, target.get(tableName));
             if (!lackField.isEmpty()) {
-                diffFields.put(key, lackField);
+                diffFields.put(tableName, lackField);
             }
         });
 
@@ -54,46 +51,44 @@ public class DataDiff {
     /**
      * 对比两张表是否相等
      */
-    private static Boolean compareFieldValue(Object value1, Object value2) {
-        return (value1 == null && value2 == null) || ((value1 != null && value2 != null) && (value1.equals(value2)));
+    private static Boolean compareFieldVal(Object source, Object target) {
+        return (source == null && target == null) || ((source != null && target != null) && (source.equals(target)));
     }
 
 
     /**
      * 对比不同的字段
      *
-     * @param table1 source
-     * @param table2 target
      * @author: haoqi
      * @date: 2020/8/19 4:17 下午
      */
-    public static Map<String, Object> diffLackField(Map<String, Map<ColumnType, Object>> table1,
-                                                    Map<String, Map<ColumnType, Object>> table2) {
+    public static Map<String, Object> diffLackField(Map<String, Map<ColumnType, Object>> source,
+                                                    Map<String, Map<ColumnType, Object>> target) {
 
         Map<String, Object> diffTable = new HashMap<>();
-        table1.forEach((key, value) -> {
+        source.forEach((fieldName, sourceFieldVals) -> {
 
             /*
              * 对比缺少的字段
              */
-            if (!table2.containsKey(key)) {
-                diffTable.put(key, value);
+            if (!target.containsKey(fieldName)) {
+                diffTable.put(fieldName, sourceFieldVals);
                 return;
             }
 
-            /*
-              比对两个表中字段中不同的属性
-             */
-            Map<ColumnType, Object> field2Value = table2.get(key);
-            for (ColumnType fieldType : ColumnType.columnTypes()) {
-                Object value1 = value.get(fieldType);
-                Object value2 = field2Value.get(fieldType);
 
-                if (!compareFieldValue(value1, value2)) {
-                    Map<String, Object> old_new = new HashMap<>();
-                    old_new.put("new", value);
-                    old_new.put("old", field2Value);
-                    diffTable.put(key, old_new);
+            Map<ColumnType, Object> targetFieldVals = target.get(fieldName);
+            //对每一个字段的各个类型进行比较
+            for (ColumnType fieldType : ColumnType.columnTypes()) {
+                //比对两个表字段中不同的属性
+                Object sourceFieldVal = sourceFieldVals.get(fieldType);
+                Object targetFieldVal = targetFieldVals.get(fieldType);
+
+                if (!compareFieldVal(sourceFieldVal, targetFieldVal)) {
+                    Map<String, Object> diffFieldVal = new HashMap<>();
+                    diffFieldVal.put(SqlUtil.SOURCE, sourceFieldVals);
+                    diffFieldVal.put(SqlUtil.TARGET, targetFieldVals);
+                    diffTable.put(fieldName, diffFieldVal);
                     break;
                 }
             }
@@ -109,7 +104,7 @@ public class DataDiff {
             Object value1 = _new.get(fieldType);
             Object value2 = _old.get(fieldType);
 
-            if (!compareFieldValue(value1, value2)) {
+            if (!compareFieldVal(value1, value2)) {
 
             }
         }
@@ -134,11 +129,11 @@ public class DataDiff {
                 diff.put(key, value);
                 return;
             }
-            String targetValue = target.get(key);
-            if (!value.equalsIgnoreCase(targetValue)) {
+            String targetVal = target.get(key);
+            if (!value.equalsIgnoreCase(targetVal)) {
                 Map<String, String> map = new HashMap<>();
-                map.put("new", value);
-                map.put("old", targetValue);
+                map.put(SqlUtil.SOURCE, value);
+                map.put(SqlUtil.TARGET, targetVal);
                 diff.put(key, map);
             }
         });
