@@ -5,8 +5,6 @@ import com.example.database_diff.enums.ColumnType;
 import java.util.*;
 
 /**
- * TODO 新表组装成create语句
- * TODO 更改的字段生成'add/alter'语句
  * TODO 将结果生成sql文件，可执行
  *
  * @Date 2020/6/13 8:53 上午
