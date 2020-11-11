@@ -50,7 +50,7 @@ public class ViewController {
     @PostMapping("getSourceViewsColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getSourceViewsColumns() throws SQLException {
         return getSourceViews().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
@@ -61,7 +61,7 @@ public class ViewController {
     @PostMapping("getTargetViewsColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTargetViewsColumns() throws SQLException {
         return getTargetViews().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);

@@ -28,8 +28,7 @@ public class TableController {
         try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
-                String tables_in_tdasapp = rs.getString(SqlUtil.getFieldName(DataSource.SCHEMA_NAME));
-                tables.add(tables_in_tdasapp);
+                tables.add(rs.getString(SqlUtil.getTablesName(DataSource.SCHEMA_NAME)));
             }
             return tables;
         }
@@ -40,8 +39,7 @@ public class TableController {
         try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
-                String tables_in_tdasapp = rs.getString(SqlUtil.getFieldName(DataTarget.SCHEMA_NAME));
-                tables.add(tables_in_tdasapp);
+                tables.add(rs.getString(SqlUtil.getTablesName(DataTarget.SCHEMA_NAME)));
             }
             return tables;
         }
@@ -50,7 +48,7 @@ public class TableController {
     @PostMapping("getSourceTablesColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getSourceTablesColumns() throws SQLException {
         return getSourceTables().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
@@ -61,7 +59,7 @@ public class TableController {
     @PostMapping("getTargetTablesColumns")
     public Map<String, Map<String, Map<ColumnType, Object>>> getTargetTablesColumns() throws SQLException {
         return getTargetTables().stream().collect(HashMap::new, (a, b) -> {
-            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.addTableName(b))) {
+            try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
                 log.error(b);
@@ -73,13 +71,11 @@ public class TableController {
     public Object getDiffTables() throws SQLException {
         TreeMap<String, Object> map = new TreeMap<>(DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns()));
         TreeMap diffTables = (TreeMap) map.get("diffFields");
-        //key 表名
-        //value字段集合
-        diffTables.forEach((key, value) -> {
+        diffTables.forEach((tableName, diffFields) -> {
 
             //fieldsKey 字段名称
             //fieldsValue 属性/值集合
-            ((HashMap) value).forEach((fieldsKey, fieldsValue) -> {
+            ((HashMap) diffFields).forEach((fieldsKey, fieldsValue) -> {
 
                 HashMap field = (HashMap) fieldsValue;
                 if (field.keySet().size() == 2) {
@@ -97,6 +93,19 @@ public class TableController {
                 }
             });
         });
+
+        TreeMap<String, Object> newTables = (TreeMap<String, Object>) map.get("newTables");
+        newTables.forEach((tableName, value) -> {
+            try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getTableDetails(tableName))) {
+                while (rs.next()) {
+                    //创建表语句
+                    System.out.println(rs.getString("Create Table"));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        });
+
         return map;
     }
 
