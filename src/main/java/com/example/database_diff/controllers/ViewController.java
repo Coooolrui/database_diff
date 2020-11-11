@@ -69,6 +69,13 @@ public class ViewController {
         }, HashMap::putAll);
     }
 
+    /**
+     * TODO 修改视图的处理方式 存储过程应该也能这样改
+     * 1. 有差异的视图只需要先删除再添加
+     * 2. 新视图直接添加
+     * @return
+     * @throws SQLException
+     */
     @PostMapping("getDiffViews")
     public Object getDiffViews() throws SQLException {
         return new TreeMap<>(DataDiff.diffTablesOrViews(getSourceViewsColumns(), getTargetViewsColumns()));
