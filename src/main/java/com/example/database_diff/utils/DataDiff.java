@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * TODO 添加对自增主键的适配
  * TODO 新表组装成create语句
  * TODO 更改的字段生成'add/alter'语句
  * TODO 将结果生成sql文件，可执行
@@ -32,16 +31,14 @@ public class DataDiff {
         Map<String, Map<String, Object>> diffFields = new HashMap<>();
 
         tables1.forEach((key, value) -> {
-            /**
-             * 对比缺少的表
-             * @param tables1 source
-             * @param tables2 target
-             */
+
+            //对比缺少的表
+            //table2对比table1没有的表名
             if (!tables2.containsKey(key)) {
                 diffTables.put(key, value);
                 return;
             }
-
+            //对比不同的字段
             Map<String, Object> lackField = diffLackField(value, tables2.get(key));
             if (!lackField.isEmpty()) {
                 diffFields.put(key, lackField);

@@ -110,6 +110,7 @@ public class TableController {
             String aNull = rs.getString(ColumnType.Null.name());
             String key = rs.getString(ColumnType.Key.name());
             String aDefault = rs.getString(ColumnType.Default.name());
+            String Extra = rs.getString(ColumnType.Extra.name());
 
             Map<ColumnType, Object> map = new HashMap<>();
             map.put(ColumnType.TableName, tableName);
@@ -118,6 +119,7 @@ public class TableController {
             map.put(ColumnType.Null, aNull);
             map.put(ColumnType.Key, key);
             map.put(ColumnType.Default, aDefault);
+            map.put(ColumnType.Extra, Extra);
 
             table.put(field, map);
         }
