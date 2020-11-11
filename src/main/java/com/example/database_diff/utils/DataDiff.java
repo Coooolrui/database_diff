@@ -2,9 +2,7 @@ package com.example.database_diff.utils;
 
 import com.example.database_diff.enums.ColumnType;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * TODO 新表组装成create语句
@@ -24,15 +22,15 @@ public class DataDiff {
                                                         Map<String, Map<String, Map<ColumnType, Object>>> target) {
 
 
-        Map<String, Object> diffTables = new HashMap<>();
         Map<String, Map<String, Object>> diffFields = new HashMap<>();
+        List<String> diffTables = new ArrayList<>();
 
         source.forEach((tableName, tableDetails) -> {
 
             //对比缺少的表
             //table2对比table1没有的表名
             if (!target.containsKey(tableName)) {
-                diffTables.put(tableName, tableDetails);
+                diffTables.add(tableName);
                 return;
             }
             //对比不同的字段
@@ -43,8 +41,8 @@ public class DataDiff {
         });
 
         Map<String, Object> map = new HashMap<>();
-        map.put("diffFields", new TreeMap<>(diffFields));
-        map.put("newTables", new TreeMap<>(diffTables));
+        map.put("diffFields", diffFields);
+        map.put("newTables", diffTables);
         return map;
     }
 

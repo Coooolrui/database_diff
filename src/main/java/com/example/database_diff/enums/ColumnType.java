@@ -5,10 +5,10 @@ package com.example.database_diff.enums;
  * @Created by haoqi
  */
 public enum ColumnType {
-    Field, Type, Null, Key, Default, TableName, Extra,
+    Field, Type, Null, Key, Default, TableName, Extra, Comment,
     SPECIFIC_NAME, ROUTINE_DEFINITION;
 
     public static ColumnType[] columnTypes() {
-        return new ColumnType[]{Field, Type, Null, Key, Default, Extra};
+        return new ColumnType[]{Field, Type, Null, Key, Default, Extra, Comment};
     }
 }

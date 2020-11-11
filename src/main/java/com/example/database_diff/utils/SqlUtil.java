@@ -18,7 +18,7 @@ public class SqlUtil {
     public static final String SHOW_TABLE_NOT_VIEW = "SHOW FULL TABLES WHERE Table_type != 'VIEW'";
     public static final String SHOW_VIEW = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = '$1' ORDER BY TABLE_NAME ASC";
     public static final String SHOW_ROUTINES = "SELECT SPECIFIC_NAME,ROUTINE_TYPE,ROUTINE_DEFINITION,ROUTINE_COMMENT FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = '$1' ORDER BY ROUTINE_NAME";
-    public static final String SHOW_COLUMN = "SHOW COLUMNS FROM `$1`";
+    public static final String SHOW_COLUMN = "SHOW FULL COLUMNS FROM `$1`";
 
     public static Statement getStatement(Connection connection) throws SQLException {
         return connection.createStatement();

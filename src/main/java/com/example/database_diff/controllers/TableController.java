@@ -6,13 +6,17 @@ import com.example.database_diff.utils.DataSource;
 import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Date 2020/6/12 10:11 上午
@@ -69,44 +73,74 @@ public class TableController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        TreeMap<String, Object> map = new TreeMap<>(DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns()));
-        TreeMap diffTables = (TreeMap) map.get("diffFields");
-        diffTables.forEach((tableName, diffFields) -> {
+        Map<String, Object> map = new HashMap<>(DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns()));
+        List<String> fieldsList = new ArrayList<>();
 
+        Map diffTables = (HashMap) map.get("diffFields");
+        diffTables.forEach((tableName, diffFields) -> {
             //fieldsKey 字段名称
             //fieldsValue 属性/值集合
             ((HashMap) diffFields).forEach((fieldsKey, fieldsValue) -> {
 
                 HashMap field = (HashMap) fieldsValue;
+                StringBuilder builder = new StringBuilder();
+                HashMap<ColumnType, String> fieldVal;
                 if (field.keySet().size() == 2) {
-                    //存在字段差异 key 为 'new' 'old'
-                    //source
-                    HashMap<ColumnType, String> _new = (HashMap<ColumnType, String>) field.get(SqlUtil.SOURCE);
-                    //target
-                    HashMap<ColumnType, String> _old = (HashMap<ColumnType, String>) field.get(SqlUtil.TARGET);
-
+                    //存在字段差异
+                    fieldVal = (HashMap<ColumnType, String>) field.get(SqlUtil.SOURCE);
+                    builder.append("alter table ")
+                            .append(fieldVal.get(ColumnType.TableName))
+                            .append(" modify ");
 
                 } else {
-                    //新字段 key 为'enum ColumnType'
-                    HashMap<ColumnType, String> _field = (HashMap<ColumnType, String>) field;
-
+                    fieldVal = (HashMap<ColumnType, String>) field;
+                    builder.append("alter table ")
+                            .append(fieldVal.get(ColumnType.TableName))
+                            .append(" add ");
                 }
+
+                builder.append(fieldVal.get(ColumnType.Field))
+                        .append(" ")
+                        .append(fieldVal.get(ColumnType.Type));
+                if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Default))) {
+                    builder.append(" default ")
+                            .append(fieldVal.get(ColumnType.Default));
+                }
+
+                if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Extra))) {
+                    builder.append(" ").append(fieldVal.get(ColumnType.Extra));
+                }
+
+                if (StringUtils.pathEquals(fieldVal.get(ColumnType.Null), "YES")) {
+                    builder.append(" NULL ");
+                } else {
+                    builder.append(" NOT NULL ");
+                }
+
+                if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Comment))) {
+                    builder.append("comment ").append(fieldVal.get(ColumnType.Comment));
+                }
+                fieldsList.add(builder.toString());
             });
         });
 
-        TreeMap<String, Object> newTables = (TreeMap<String, Object>) map.get("newTables");
-        newTables.forEach((tableName, value) -> {
+
+        List<String> tablesList = new ArrayList<>();
+        List<String> newTables = (ArrayList<String>) map.get("newTables");
+        newTables.forEach(tableName -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getTableDetails(tableName))) {
                 while (rs.next()) {
                     //创建表语句
-                    System.out.println(rs.getString("Create Table"));
+                    tablesList.add(rs.getString("Create Table"));
                 }
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
         });
-
-        return map;
+        HashMap<String, List<String>> diffMap = new HashMap<>();
+        diffMap.put("diffFields",fieldsList);
+        diffMap.put("diffTables",tablesList);
+        return diffMap;
     }
 
     public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
@@ -124,6 +158,7 @@ public class TableController {
             map.put(ColumnType.Key, rs.getString(ColumnType.Key.name()));
             map.put(ColumnType.Default, rs.getString(ColumnType.Default.name()));
             map.put(ColumnType.Extra, rs.getString(ColumnType.Extra.name()));
+            map.put(ColumnType.Comment, rs.getString(ColumnType.Comment.name()));
 
             table.put(field, map);
         }
