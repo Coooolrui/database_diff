@@ -73,7 +73,7 @@ public class TableController {
 
     @PostMapping("getDiffTables")
     public Object getDiffTables() throws SQLException {
-        Map<String, Object> map = new HashMap<>(DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns()));
+        Map<String, Object> map = DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns());
         List<String> fieldsList = new ArrayList<>();
 
         Map diffTables = (HashMap) map.get("diffFields");
@@ -138,8 +138,8 @@ public class TableController {
             }
         });
         HashMap<String, List<String>> diffMap = new HashMap<>();
-        diffMap.put("diffFields",fieldsList);
-        diffMap.put("diffTables",tablesList);
+        diffMap.put("diffFields", fieldsList);
+        diffMap.put("diffTables", tablesList);
         return diffMap;
     }
 
