@@ -5,7 +5,6 @@ import com.example.database_diff.utils.DataDiff;
 import com.example.database_diff.utils.DataSource;
 import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +17,6 @@ import java.util.*;
  * @author: haoqi
  * @date: 2020/6/22 4:47 下午
  */
-@Slf4j
 @RestController
 @RequestMapping("views")
 public class ViewController {
@@ -53,7 +51,7 @@ public class ViewController {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
-                log.error(b);
+                throwables.printStackTrace();
             }
         }, HashMap::putAll);
     }
@@ -64,7 +62,7 @@ public class ViewController {
             try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
-                log.error(b);
+                throwables.printStackTrace();
             }
         }, HashMap::putAll);
     }
@@ -73,6 +71,7 @@ public class ViewController {
      * TODO 修改视图的处理方式 存储过程应该也能这样改
      * 1. 有差异的视图只需要先删除再添加
      * 2. 新视图直接添加
+     *
      * @return
      * @throws SQLException
      */

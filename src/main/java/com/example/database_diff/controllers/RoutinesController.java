@@ -5,7 +5,6 @@ import com.example.database_diff.utils.DataDiff;
 import com.example.database_diff.utils.DataSource;
 import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +18,6 @@ import java.util.Map;
  * @author: haoqi
  * @date: 2020/6/22 4:47 下午
  */
-@Slf4j
 @RestController
 @RequestMapping("routines")
 public class RoutinesController {

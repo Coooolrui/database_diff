@@ -5,7 +5,6 @@ import com.example.database_diff.utils.DataDiff;
 import com.example.database_diff.utils.DataSource;
 import com.example.database_diff.utils.DataTarget;
 import com.example.database_diff.utils.SqlUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +21,6 @@ import java.util.Map;
  * @Date 2020/6/12 10:11 上午
  * @Created by haoqi
  */
-@Slf4j
 @RestController
 @RequestMapping("tables")
 public class TableController {
@@ -55,7 +53,7 @@ public class TableController {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
-                log.error(b);
+                throwables.printStackTrace();
             }
         }, HashMap::putAll);
     }
@@ -66,7 +64,7 @@ public class TableController {
             try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
             } catch (SQLException throwables) {
-                log.error(b);
+                throwables.printStackTrace();
             }
         }, HashMap::putAll);
     }
