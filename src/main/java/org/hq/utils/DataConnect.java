@@ -1,5 +1,6 @@
 package org.hq.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -11,11 +12,24 @@ import java.util.Map;
 
 public class DataConnect {
 
+    public static String FILE_PATH;
+
     public static void init() {
         Yaml yaml = new Yaml();
         InputStream resourceAsStream = DataSource.class.getClassLoader().getResourceAsStream("application.yml");
 
         Map<String, Object> env = yaml.load(resourceAsStream);
+        if (env.get("filepath") == null) {
+            System.out.println("必须填写文件输出路径");
+            System.exit(0);
+            return;
+        }
+        FILE_PATH = env.get("filepath").toString();
+        if (StringUtils.isBlank(FILE_PATH)) {
+            System.out.println("必须填写文件输出路径");
+            System.exit(0);
+            return;
+        }
 
         LinkedHashMap datasource = (LinkedHashMap) ((LinkedHashMap) env.get("source")).get("datasource");
         DataSource.URL = datasource.get("url").toString();
