@@ -1,8 +1,12 @@
-package com.example.database_diff.utils;
+package org.hq.utils;
 
-import com.example.database_diff.enums.ColumnType;
 
-import java.util.*;
+import org.hq.enums.ColumnType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TODO 将结果生成sql文件，可执行

@@ -1,4 +1,4 @@
-package com.example.database_diff.utils;
+package org.hq.utils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

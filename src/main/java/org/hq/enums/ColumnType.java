@@ -1,4 +1,4 @@
-package com.example.database_diff.enums;
+package org.hq.enums;
 
 /**
  * @Date 2020/6/13 8:55 上午

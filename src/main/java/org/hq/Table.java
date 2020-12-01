@@ -1,32 +1,25 @@
-package com.example.database_diff.controllers;
+package org.hq;
 
-import com.example.database_diff.enums.ColumnType;
-import com.example.database_diff.utils.DataDiff;
-import com.example.database_diff.utils.DataSource;
-import com.example.database_diff.utils.DataTarget;
-import com.example.database_diff.utils.SqlUtil;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hq.enums.ColumnType;
+import org.hq.utils.DataDiff;
+import org.hq.utils.SqlUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.hq.utils.DataConnect.DataSource;
+import static org.hq.utils.DataConnect.DataTarget;
 
 /**
  * @Date 2020/6/12 10:11 上午
  * @Created by haoqi
  */
-@RestController
-@RequestMapping("tables")
-public class TableController {
+public class Table {
 
-    @PostMapping("getSourceTables")
-    public List<String> getSourceTables() throws SQLException {
+    public static List<String> getSourceTables() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -36,8 +29,7 @@ public class TableController {
         }
     }
 
-    @PostMapping("getTargetTables")
-    public List<String> getTargetTables() throws SQLException {
+    public static List<String> getTargetTables() throws SQLException {
         try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.SHOW_TABLE_NOT_VIEW)) {
             List<String> tables = new ArrayList<>();
             while (rs.next()) {
@@ -47,8 +39,7 @@ public class TableController {
         }
     }
 
-    @PostMapping("getSourceTablesColumns")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getSourceTablesColumns() throws SQLException {
+    public static Map<String, Map<String, Map<ColumnType, Object>>> getSourceTablesColumns() throws SQLException {
         return getSourceTables().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
@@ -58,8 +49,7 @@ public class TableController {
         }, HashMap::putAll);
     }
 
-    @PostMapping("getTargetTablesColumns")
-    public Map<String, Map<String, Map<ColumnType, Object>>> getTargetTablesColumns() throws SQLException {
+    public static Map<String, Map<String, Map<ColumnType, Object>>> getTargetTablesColumns() throws SQLException {
         return getTargetTables().stream().collect(HashMap::new, (a, b) -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataTarget.getConnection(), SqlUtil.getColumns(b))) {
                 a.putAll(addTable(rs, b));
@@ -69,10 +59,9 @@ public class TableController {
         }, HashMap::putAll);
     }
 
-    @PostMapping("getDiffTables")
-    public Object getDiffTables() throws SQLException {
+    public static StringJoiner getDiffTables() throws SQLException {
         Map<String, Object> map = DataDiff.diffTablesOrViews(getSourceTablesColumns(), getTargetTablesColumns());
-        List<String> fieldsList = new ArrayList<>();
+        StringJoiner joiner = new StringJoiner(";\n");
 
         Map diffTables = (HashMap) map.get("diffFields");
         diffTables.forEach((tableName, diffFields) -> {
@@ -101,47 +90,47 @@ public class TableController {
                         .append(" ")
                         .append(fieldVal.get(ColumnType.Type));
                 if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Default))) {
-                    builder.append(" default ")
-                            .append(fieldVal.get(ColumnType.Default));
+                    builder.append(" default ");
+                    if (StringUtils.contains(fieldVal.get(ColumnType.Default), "'")) {
+                        builder.append(fieldVal.get(ColumnType.Default));
+                    } else {
+                        builder.append("'").append(fieldVal.get(ColumnType.Default)).append("'");
+                    }
                 }
 
                 if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Extra))) {
                     builder.append(" ").append(fieldVal.get(ColumnType.Extra));
                 }
 
-                if (StringUtils.pathEquals(fieldVal.get(ColumnType.Null), "YES")) {
+                if (StringUtils.contains(fieldVal.get(ColumnType.Null), "YES")) {
                     builder.append(" NULL ");
                 } else {
                     builder.append(" NOT NULL ");
                 }
 
                 if (!StringUtils.isEmpty(fieldVal.get(ColumnType.Comment))) {
-                    builder.append("comment ").append(fieldVal.get(ColumnType.Comment));
+                    builder.append("comment '").append(fieldVal.get(ColumnType.Comment)).append("'");
                 }
-                fieldsList.add(builder.toString());
+                joiner.add(builder.toString());
             });
         });
 
 
-        List<String> tablesList = new ArrayList<>();
         List<String> newTables = (ArrayList<String>) map.get("newTables");
         newTables.forEach(tableName -> {
             try (ResultSet rs = SqlUtil.getResultSet(DataSource.getConnection(), SqlUtil.getTableDetails(tableName))) {
                 while (rs.next()) {
                     //创建表语句
-                    tablesList.add(rs.getString("Create Table"));
+                    joiner.add(rs.getString("Create Table"));
                 }
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
         });
-        HashMap<String, List<String>> diffMap = new HashMap<>();
-        diffMap.put("diffFields", fieldsList);
-        diffMap.put("diffTables", tablesList);
-        return diffMap;
+        return joiner;
     }
 
-    public Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
+    public static Map<String, Map<String, Map<ColumnType, Object>>> addTable(ResultSet rs, String tableName) throws SQLException {
         Map<String, Map<String, Map<ColumnType, Object>>> tables = new HashMap<>();
 
         Map<String, Map<ColumnType, Object>> table = new HashMap<>();

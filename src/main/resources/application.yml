@@ -1,16 +1,12 @@
-server:
-  port: 8080
-
-spring:
-  source:
-    datasource:
-      url: jdbc:mysql://localhost:3306/different?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      schema-name: different
-      username: root
-      password: 123456
-  target:
-    datasource:
-      url: jdbc:mysql://localhost:3306/different2?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      schema-name: different2
-      username: root
-      password: 123456
+source:
+  datasource:
+    url: jdbc:mysql://localhost:3306/different?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    schema-name: different
+target:
+  datasource:
+    url: jdbc:mysql://localhost:3306/different2?useSSL=false&useUnicode=false&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    schema-name: different2

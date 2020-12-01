@@ -11,9 +11,9 @@
 * [ ] 外键和索引
 * [ ] 不同视图，视图缺少
 * [ ] 不同存储过程，存储过程缺少
-* [ ] 换一种获取结果的方式
+* [x] 换一种获取结果的方式
+* [ ] 将结果输出到一个.sql文件中
 
 操作方式
 1. 更改application.yml配置文件
 2. 启动项目
-3. POST: http://localhost:8080/tables/getDiffTables 不需要args
